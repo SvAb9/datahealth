@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Data-Health · sistema de diseño base
+   Pensado para adultos mayores y personal de salud: texto grande, contraste
+   alto, objetivos táctiles amplios y foco siempre visible (RNF-05, RNF-08).
+   ========================================================================== */
+
+:root {
+  --tinta: #14233b;
+  --tinta-suave: #4a5a72;
+  --puerto: #1b4f8f;
+  --puerto-oscuro: #123760;
+  --niebla: #eef3f7;
+  --papel: #ffffff;
+  --linea: #c9d4e0;
+  --musgo: #1f7a4d;
+  --musgo-fondo: #e3f3ea;
+  --ladrillo: #b3261e;
+  --ladrillo-fondo: #fbe9e7;
+
+  --escala-texto: 1;
+  --radio: 0.5rem;
+  --foco: 0 0 0 0.1875rem var(--papel), 0 0 0 0.375rem var(--puerto);
+}
+
+:root[data-contraste='alto'] {
+  --tinta: #000;
+  --tinta-suave: #1a1a1a;
+  --puerto: #0a2f66;
+  --puerto-oscuro: #000;
+  --niebla: #fff;
+  --linea: #000;
+  --foco: 0 0 0 0.1875rem #fff, 0 0 0 0.4375rem #000;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: calc(18px * var(--escala-texto)); }
+
+body {
+  margin: 0;
+  font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  line-height: 1.55;
+  color: var(--tinta);
+  background: var(--niebla);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0 0 1rem; max-width: 65ch; }
+a { color: var(--puerto); }
+
+:focus-visible { outline: none; box-shadow: var(--foco); border-radius: var(--radio); }
+
+.solo-lectores {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 3rem; padding: 0.5rem 1.4rem;
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+  border: 2px solid var(--puerto); border-radius: var(--radio);
+  background: var(--puerto); color: #fff;
+}
+.btn:hover:not(:disabled) { background: var(--puerto-oscuro); border-color: var(--puerto-oscuro); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn--secundario { background: transparent; color: var(--puerto); }
+.btn--secundario:hover:not(:disabled) { background: var(--puerto); color: #fff; }
+.btn--bloque { width: 100%; }
+
+/* ---------- Formularios ---------- */
+.campo { margin-bottom: 1.25rem; }
+.campo label { display: block; font-weight: 700; margin-bottom: 0.3rem; }
+.campo .ayuda { color: var(--tinta-suave); font-size: 0.9rem; margin: 0.25rem 0 0; }
+.campo input, .campo select, .campo textarea {
+  width: 100%; min-height: 3rem; padding: 0.5rem 0.8rem;
+  font: inherit; color: var(--tinta); background: var(--papel);
+  border: 2px solid var(--tinta-suave); border-radius: var(--radio);
+}
+.campo input:focus-visible, .campo select:focus-visible { box-shadow: var(--foco); }
+.campo.invalido input, .campo.invalido select { border-color: var(--ladrillo); }
+.campo .error { color: var(--ladrillo); font-weight: 700; margin: 0.3rem 0 0; font-size: 0.95rem; }
+.campos-fila { display: grid; gap: 0 1.25rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+
+/* ---------- Avisos (no dependen solo del color: llevan texto fuerte) ---------- */
+.aviso { padding: 0.9rem 1.1rem; border-radius: var(--radio); border-left: 0.4rem solid; margin-bottom: 1.25rem; }
+.aviso--error { background: var(--ladrillo-fondo); border-color: var(--ladrillo); }
+.aviso--ok { background: var(--musgo-fondo); border-color: var(--musgo); }
+.aviso--info { background: var(--papel); border-color: var(--puerto); }
+.aviso strong { display: block; }
+
+/* ---------- Contenido de página ---------- */
+.pagina { max-width: 62rem; }
+.pagina__intro { color: var(--tinta-suave); margin-bottom: 1.75rem; }
+.panel { background: var(--papel); border: 2px solid var(--linea); border-radius: var(--radio); padding: 1.5rem; margin-bottom: 1.5rem; }
+
+.vacio { padding: 2rem 1.5rem; border: 2px dashed var(--linea); border-radius: var(--radio); background: var(--papel); }
+.vacio h2 { margin-bottom: 0.25rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
