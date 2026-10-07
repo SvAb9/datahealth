@@ -1,0 +1,11 @@
+# Lo que NO se envía al motor de construcción.
+# OJO: NO excluir target/ (ahí está el .jar que copia el Dockerfile).
+.git
+.idea
+.vscode
+src
+.mvn
+mvnw
+mvnw.cmd
+HELP.md
+.env
