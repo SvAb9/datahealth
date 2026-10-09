@@ -24,6 +24,16 @@ public class GlobalExceptionHandler {
         return responder(HttpStatus.LOCKED, ex.getMessage(), req);
     }
 
+    @ExceptionHandler(EmailDuplicadoException.class)
+    public ResponseEntity<ApiError> emailDuplicado(EmailDuplicadoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.CONFLICT, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(RolNoPermitidoException.class)
+    public ResponseEntity<ApiError> rolNoPermitido(RolNoPermitidoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> datosInvalidos(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String mensaje = ex.getBindingResult().getFieldErrors().stream()
