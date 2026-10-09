@@ -5,7 +5,7 @@ import { ETIQUETA_ROL, Rol } from '../../core/models/rol';
 import { UsuariosService } from './usuarios.service';
 
 /** Roles que el administrador de entidad puede crear. */
-const ROLES_CREABLES: Rol[] = ['PERSONAL_MEDICO', 'PERSONAL_ADMINISTRATIVO', 'PACIENTE', 'CUIDADOR'];
+const ROLES_CREABLES: Rol[] = ['PERSONAL_MEDICO', 'PERSONAL_ADMINISTRATIVO', 'PACIENTE'];
 
 @Component({
   selector: 'app-registrar-usuario',
