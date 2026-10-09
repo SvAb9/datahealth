@@ -15,7 +15,9 @@ import co.edu.uniquindio.datahealth.model.dto.LoginRequest;
 import co.edu.uniquindio.datahealth.model.dto.LoginResponse;
 import co.edu.uniquindio.datahealth.model.entity.Usuario;
 import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
+import co.edu.uniquindio.datahealth.security.AuthContext;
 import co.edu.uniquindio.datahealth.security.JwtService;
+import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -79,6 +81,15 @@ public class AuthService {
         usuarioRepository.save(usuario);
         auditoriaService.registrar(usuario.getIdEps(), usuario.getEmail(), "LOGIN_EXITOSO", null);
         return new LoginResponse(jwtService.generarToken(usuario));
+    }
+
+    /**
+     * Cierre de sesión (HU-02). Según ADR-04 el token no se revoca: el cliente lo descarta.
+     * Este método solo deja constancia en la auditoría (RNF-15).
+     */
+    public void logout() {
+        UsuarioAutenticado usuario = AuthContext.usuarioActual();
+        auditoriaService.registrar(usuario.idEps(), usuario.email(), "LOGOUT", null);
     }
 
     /** Suma el intento fallido; al llegar al máximo bloquea la cuenta. Siempre lanza una excepción. */
