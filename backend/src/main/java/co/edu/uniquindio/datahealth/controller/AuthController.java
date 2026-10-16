@@ -10,15 +10,16 @@ import co.edu.uniquindio.datahealth.model.dto.LoginRequest;
 import co.edu.uniquindio.datahealth.model.dto.LoginResponse;
 import co.edu.uniquindio.datahealth.service.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
-
+    public AuthController(AuthService authService) {
+    this.authService = authService;
+}
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
