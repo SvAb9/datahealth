@@ -25,7 +25,7 @@ export const MODULOS: Modulo[] = [
     ruta: '/historia-clinica',
     etiqueta: 'Historia clínica',
     descripcion: 'Ver la línea de tiempo de las atenciones en orden cronológico.',
-    roles: ['PERSONAL_MEDICO', 'PACIENTE', 'CUIDADOR'],
+    roles: ['PERSONAL_MEDICO', 'PACIENTE'],
   },
   {
     ruta: '/usuarios',

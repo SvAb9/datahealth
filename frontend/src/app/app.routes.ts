@@ -30,7 +30,7 @@ export const routes: Routes = [
       {
         path: 'historia-clinica',
         canActivate: [rolGuard],
-        data: { roles: ['PERSONAL_MEDICO', 'PACIENTE', 'CUIDADOR'] },
+        data: { roles: ['PERSONAL_MEDICO', 'PACIENTE'] },
         loadChildren: () => import('./features/historia-clinica/historia-clinica.routes').then((m) => m.HISTORIA_ROUTES),
       },
       {

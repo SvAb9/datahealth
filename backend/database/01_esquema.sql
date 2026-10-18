@@ -35,7 +35,7 @@ CREATE TABLE usuario (
   CONSTRAINT uq_usuario_email  UNIQUE (email),
   CONSTRAINT fk_usuario_eps    FOREIGN KEY (id_eps) REFERENCES eps (id_eps),
   CONSTRAINT ck_usuario_activo CHECK (activo IN (0, 1)),
-  CONSTRAINT ck_usuario_rol    CHECK (rol IN ('ADMIN_ENTIDAD','PERSONAL_MEDICO','PERSONAL_ADMINISTRATIVO','PACIENTE','CUIDADOR'))
+  CONSTRAINT ck_usuario_rol    CHECK (rol IN ('ADMIN_ENTIDAD','PERSONAL_MEDICO','PERSONAL_ADMINISTRATIVO','PACIENTE'))
 );
 
 -- ADR-03: toda consulta filtra por id_eps, así que se indexa.

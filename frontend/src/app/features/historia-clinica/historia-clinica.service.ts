@@ -9,7 +9,7 @@ export class HistoriaClinicaService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/historia-clinica`;
 
-  /** Paciente/cuidador: el backend resuelve el expediente desde el JWT. SUPUESTO de ruta. */
+  /** Paciente: el backend resuelve el expediente desde el JWT. SUPUESTO de ruta. */
   consultarPropia(): Observable<Atencion[]> {
     return this.http.get<Atencion[]>(this.url);
   }

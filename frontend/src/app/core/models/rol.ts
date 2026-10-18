@@ -4,12 +4,11 @@ export type Rol =
   | 'PERSONAL_MEDICO'
   | 'PERSONAL_ADMINISTRATIVO'
   | 'PACIENTE'
-  | 'CUIDADOR';
+  ;
 
 export const ETIQUETA_ROL: Record<Rol, string> = {
   ADMIN_ENTIDAD: 'Administrador de entidad',
   PERSONAL_MEDICO: 'Personal médico',
   PERSONAL_ADMINISTRATIVO: 'Personal administrativo',
   PACIENTE: 'Paciente',
-  CUIDADOR: 'Cuidador',
 };
