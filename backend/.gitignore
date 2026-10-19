@@ -44,3 +44,15 @@ application-local.yml
 application-local.yaml
 ### Secretos locales ###
 .env
+
+# Wallet y claves de Oracle
+wallet/
+*.jks
+*.sso
+*.p12
+*.pem
+
+Wallet_*.zip
+*.zip
+tnsnames.ora
+sqlnet.ora
