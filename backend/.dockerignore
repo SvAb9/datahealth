@@ -3,9 +3,14 @@
 .git
 .idea
 .vscode
-src
+target
 .mvn
 mvnw
 mvnw.cmd
 HELP.md
 .env
+*.jks
+*.sso
+*.p12
+*.pem
+wallet
