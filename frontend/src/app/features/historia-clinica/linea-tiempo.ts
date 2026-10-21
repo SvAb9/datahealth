@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/http/api-error';
+import { AuthService } from '../../core/services/auth.service';
 import { Atencion } from './historia-clinica.models';
 import { HistoriaClinicaService } from './historia-clinica.service';
 
@@ -9,44 +11,56 @@ const ETIQUETA_ORDEN = { MEDICA: 'Orden médica', MEDICAMENTO: 'Medicamento', LA
 /** RF-19: historia clínica como línea de tiempo de citas, de la más reciente a la más antigua. */
 @Component({
   selector: 'app-linea-tiempo',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   template: `
     <div class="pagina">
       <h1>Historia clínica</h1>
-      <p class="pagina__intro">Atenciones registradas, de la más reciente a la más antigua.</p>
 
-      @if (cargando()) {
-        <p role="status">Cargando historia clínica…</p>
-      } @else if (error()) {
-        <div class="aviso aviso--error" role="alert"><strong>No pudimos cargar la historia clínica</strong> {{ error() }}</div>
-      } @else if (atenciones().length === 0) {
-        <div class="vacio">
-          <h2>Aún no hay atenciones</h2>
-          <p>Cuando se cierre una atención aparecerá aquí.</p>
+      @if (sinPacienteSeleccionado()) {
+        <div class="vacio" role="status">
+          <h2>Selecciona un paciente</h2>
+          <p>
+            Para consultar una historia clínica, ve al menú Pacientes, busca el documento de identidad
+            del paciente y presiona Ver historia clínica.
+          </p>
+          <a class="btn" routerLink="/pacientes">Ir a Pacientes</a>
         </div>
       } @else {
-        <ol class="tiempo">
-          @for (a of atenciones(); track a.idCita) {
-            <li>
-              <h2>{{ a.fecha | date: "d 'de' MMMM 'de' y" }}</h2>
-              <p class="meta">
-                <span class="estado" [class.estado--cerrada]="a.estado === 'CERRADA'">
-                  {{ a.estado === 'CERRADA' ? 'Atención cerrada' : 'Atención abierta' }}
-                </span>
-                Atendió: {{ a.medico }}
-              </p>
-              @if (a.diagnostico) { <p><strong>Diagnóstico:</strong> {{ a.diagnostico }}</p> }
-              @if (a.ordenes.length) {
-                <ul class="ordenes">
-                  @for (o of a.ordenes; track $index) { <li><strong>{{ etiquetaOrden[o.tipo] }}:</strong> {{ o.descripcion }}</li> }
-                </ul>
-              }
-              @for (c of a.correcciones; track $index) {
-                <p class="correccion"><strong>Corrección posterior</strong> ({{ c.fechaHora | date: 'dd/MM/y HH:mm' }}, {{ c.usuario }}): {{ c.motivo }}</p>
-              }
-            </li>
-          }
-        </ol>
+        <p class="pagina__intro">Atenciones registradas, de la más reciente a la más antigua.</p>
+
+        @if (cargando()) {
+          <p role="status">Cargando historia clínica…</p>
+        } @else if (error()) {
+          <div class="aviso aviso--error" role="alert"><strong>No pudimos cargar la historia clínica</strong> {{ error() }}</div>
+        } @else if (atenciones().length === 0) {
+          <div class="vacio">
+            <h2>Aún no hay atenciones</h2>
+            <p>Cuando se cierre una atención aparecerá aquí.</p>
+          </div>
+        } @else {
+          <ol class="tiempo">
+            @for (a of atenciones(); track a.idCita) {
+              <li>
+                <h2>{{ a.fecha | date: "d 'de' MMMM 'de' y" }}</h2>
+                <p class="meta">
+                  <span class="estado" [class.estado--cerrada]="a.estado === 'CERRADA'">
+                    {{ a.estado === 'CERRADA' ? 'Atención cerrada' : 'Atención abierta' }}
+                  </span>
+                  Atendió: {{ a.medico }}
+                </p>
+                @if (a.diagnostico) { <p><strong>Diagnóstico:</strong> {{ a.diagnostico }}</p> }
+                @if (a.ordenes.length) {
+                  <ul class="ordenes">
+                    @for (o of a.ordenes; track $index) { <li><strong>{{ etiquetaOrden[o.tipo] }}:</strong> {{ o.descripcion }}</li> }
+                  </ul>
+                }
+                @for (c of a.correcciones; track $index) {
+                  <p class="correccion"><strong>Corrección posterior</strong> ({{ c.fechaHora | date: 'dd/MM/y HH:mm' }}, {{ c.usuario }}): {{ c.motivo }}</p>
+                }
+              </li>
+            }
+          </ol>
+        }
       }
     </div>
   `,
@@ -60,12 +74,14 @@ const ETIQUETA_ORDEN = { MEDICA: 'Orden médica', MEDICAMENTO: 'Medicamento', LA
     .estado--cerrada { border-color: var(--musgo); color: var(--musgo); }
     .ordenes { margin: 0 0 1rem; padding-left: 1.25rem; }
     .correccion { background: var(--papel); border-left: 0.4rem solid var(--puerto); padding: 0.6rem 0.9rem; }
+    .vacio .btn { margin-top: 0.5rem; }
   `,
 })
 export class LineaTiempo {
   private readonly servicio = inject(HistoriaClinicaService);
+  private readonly auth = inject(AuthService);
 
-  /** Viene de la ruta :idPaciente (withComponentInputBinding). Sin id = historia propia. */
+  /** Viene de la ruta :idPaciente (withComponentInputBinding). Sin id = historia propia (solo PACIENTE). */
   readonly idPaciente = input<string>();
 
   protected readonly etiquetaOrden = ETIQUETA_ORDEN;
@@ -73,8 +89,20 @@ export class LineaTiempo {
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
 
+  /** El personal médico no tiene "historia propia": sin paciente elegido se muestra un estado vacío, no un error. */
+  protected readonly sinPacienteSeleccionado = computed(
+    () => !this.idPaciente() && this.auth.tieneRol('PERSONAL_MEDICO'),
+  );
+
   constructor() {
     effect(() => {
+      if (this.sinPacienteSeleccionado()) {
+        this.atenciones.set([]);
+        this.error.set(null);
+        this.cargando.set(false);
+        return;
+      }
+
       const id = this.idPaciente();
       this.cargando.set(true);
       this.error.set(null);

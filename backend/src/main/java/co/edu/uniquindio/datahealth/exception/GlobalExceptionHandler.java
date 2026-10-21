@@ -34,6 +34,22 @@ public class GlobalExceptionHandler {
         return responder(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
 
+    /** 404: el paciente no existe o es de otra EPS (RN-01). */
+    @ExceptionHandler(PacienteNoEncontradoException.class)
+    public ResponseEntity<ApiError> pacienteNoEncontrado(PacienteNoEncontradoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(PacienteDuplicadoException.class)
+    public ResponseEntity<ApiError> pacienteDuplicado(PacienteDuplicadoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.CONFLICT, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(DatosInvalidosException.class)
+    public ResponseEntity<ApiError> datosInvalidos(DatosInvalidosException ex, HttpServletRequest req) {
+        return responder(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> datosInvalidos(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String mensaje = ex.getBindingResult().getFieldErrors().stream()

@@ -33,4 +33,10 @@ export const MODULOS: Modulo[] = [
     descripcion: 'Registrar y gestionar los usuarios de tu entidad.',
     roles: ['ADMIN_ENTIDAD'],
   },
+    {
+    ruta: '/auditoria',
+    etiqueta: 'Auditoría',
+    descripcion: 'Consultar los accesos, bloqueos y operaciones registrados en tu entidad.',
+    roles: ['ADMIN_ENTIDAD'],
+  },
 ];
