@@ -38,6 +38,11 @@ export const routes: Routes = [
         canActivate: [rolGuard],
         data: { roles: ['PERSONAL_MEDICO'] },
         loadChildren: () => import('./features/ordenes/ordenes.routes').then((m) => m.ORDENES_ROUTES),
+      },      {
+        path: 'auditoria',
+        canActivate: [rolGuard],
+        data: { roles: ['ADMIN_ENTIDAD'] },
+        loadChildren: () => import('./features/auditoria/auditoria.routes').then((m) => m.AUDITORIA_ROUTES),
       },
     ],
   },
