@@ -20,11 +20,15 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and Deploy to Azure Container Apps
+      - name: Build Docker Image and Deploy
         uses: Azure/cli@v1
         with:
           inlineScript: |
             az containerapp up \
               --name ca-datahealth-api \
               --resource-group rg-datahealth-stg \
-              --source ./backend
+              --source ./backend \
+              --environment cae-datahealth-stg \
+              --ingress external \
+              --target-port 8080 \
+              --build-env-vars BP_JVM_VERSION=21
