@@ -3,11 +3,12 @@
 -- Ejecutar conectado como DATAHEALTH, DESPUÉS de los scripts 01 y 02.
 -- Ejecutar con "Ejecutar script" (F5).
 --
--- Aislamiento por EPS (ADR-03) reforzado EN LA BASE DE DATOS:
+-- Aislamiento por EPS (ADR-03) reforzado  EN LA BASE DE DATOS::
 -- las claves foráneas son compuestas (id_eps + id), así que es imposible
 -- enlazar, por ejemplo, una cita de la EPS 1 con un paciente de la EPS 2.
 --
 -- Compatible con Oracle XE/Free, Oracle 19c+ y Autonomous Database (Azure/OCI).
+
 -- No usa tablespaces, secuencias manuales ni funciones exclusivas de una edición.
 -- Con ddl-auto=validate, las entidades Java deben coincidir con estas tablas.
 -- =====================================================================
