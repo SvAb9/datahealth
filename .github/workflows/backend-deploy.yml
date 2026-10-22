@@ -20,14 +20,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build Docker Image and Deploy
-        uses: Azure/cli@v1
+      - name: Deploy to Azure Container App using ACR
+        uses: azure/container-apps-deploy-action@v1
         with:
-          inlineScript: |
-            az containerapp up \
-              --name ca-datahealth-api \
-              --resource-group rg-datahealth-stg \
-              --source ./backend \
-              --dockerfile ./backend/Dockerfile \
-              --ingress external \
-              --target-port 8080
+          appSourcePath: '${{ github.workspace }}/backend'
+          acrName: 'acrdatahealth8659'
+          resourceGroup: 'rg-datahealth-stg'
+          containerAppName: 'ca-datahealth-api'
