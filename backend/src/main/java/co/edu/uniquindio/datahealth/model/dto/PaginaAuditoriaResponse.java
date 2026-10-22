@@ -1,6 +1,12 @@
 package co.edu.uniquindio.datahealth.model.dto;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
-public record AuditoriaResponse(Long id, String usuario, String accion, String detalle, LocalDateTime fechaHora) {
+/** Una página de registros de auditoría. Los nombres de los campos son los que lee el frontend. */
+public record PaginaAuditoriaResponse(
+        List<AuditoriaResponse> contenido,
+        int pagina,
+        int tamano,
+        long total,
+        int totalPaginas) {
 }
