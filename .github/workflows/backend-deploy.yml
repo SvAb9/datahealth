@@ -1,6 +1,7 @@
 name: Deploy Backend to Azure Container Apps
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -19,9 +20,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and Deploy to Container App
-        uses: azure/container-apps-deploy-action@v1
+      - name: Build and Deploy to Azure Container Apps
+        uses: Azure/cli@v1
         with:
-          appSourcePath: '${{ github.workspace }}/backend'
-          resourceGroup: 'rg-datahealth-stg'
-          containerAppName: 'ca-datahealth-api'
+          inlineScript: |
+            az containerapp up \
+              --name ca-datahealth-api \
+              --resource-group rg-datahealth-stg \
+              --source ./backend
