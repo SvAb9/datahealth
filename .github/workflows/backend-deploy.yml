@@ -28,7 +28,6 @@ jobs:
               --name ca-datahealth-api \
               --resource-group rg-datahealth-stg \
               --source ./backend \
-              --environment cae-datahealth-stg \
+              --dockerfile ./backend/Dockerfile \
               --ingress external \
-              --target-port 8080 \
-              --build-env-vars BP_JVM_VERSION=21
+              --target-port 8080
