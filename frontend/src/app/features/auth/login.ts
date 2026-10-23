@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/http/api-error';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="login">
       <section class="login__marca">
@@ -53,6 +53,12 @@ import { AuthService } from '../../core/services/auth.service';
             {{ enviando() ? 'Ingresando…' : 'Iniciar sesión' }}
           </button>
         </form>
+
+        <div class="registro-aviso">
+          <p><strong>¿Eres paciente y aún no tienes cuenta?</strong></p>
+          <a class="btn btn--secundario btn--bloque" routerLink="/registro">Crear mi cuenta de paciente</a>
+          <p class="registro-nota">Si trabajas en una entidad de salud, tu usuario lo crea el administrador de tu entidad.</p>
+        </div>
       </section>
     </div>
   `,
@@ -64,6 +70,9 @@ import { AuthService } from '../../core/services/auth.service';
     .login__form { padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; max-width: 30rem; width: 100%; margin: 0 auto; }
     label.inline { display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 400; cursor: pointer; }
     label.inline input { width: 1.4rem; min-height: 1.4rem; height: 1.4rem; }
+    .registro-aviso { margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid var(--linea); }
+    .registro-aviso p { margin-bottom: 0.75rem; }
+    .registro-nota { margin: 0.75rem 0 0; color: var(--tinta-suave); font-size: 0.9rem; }
     @media (max-width: 52rem) {
       .login { grid-template-columns: 1fr; }
       .login__marca { padding: 2rem 1.5rem; }

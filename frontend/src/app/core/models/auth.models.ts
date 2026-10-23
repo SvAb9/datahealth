@@ -23,3 +23,20 @@ export interface Sesion {
   idEps: number;
   expiraEn: number; // epoch en milisegundos
 }
+/** Entidad de salud mostrada en el selector del registro (GET /auth/eps, público). */
+export interface Eps {
+  idEps: number;
+  nombre: string;
+}
+
+/** Autorregistro: solo crea pacientes; el backend fija el rol. */
+export interface RegistroPacienteRequest {
+  idEps: number;
+  documento: string;
+  nombre: string;
+  edad: number;
+  telefono: string;
+  direccion?: string;
+  email: string;
+  password: string;
+}
