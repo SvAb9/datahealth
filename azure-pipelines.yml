@@ -45,11 +45,14 @@ pr:
       - frontend
       - azure-pipelines.yml
 
-pool:
-  ${{ if eq(parameters.agente, 'propio') }}:
-    name: Default
-  ${{ if ne(parameters.agente, 'propio') }}:
-    vmImage: ubuntu-latest
+parameters:
+  - name: pool
+    displayName: Pool del agente
+    type: object
+    default:
+      vmImage: ubuntu-latest   # para agente propio: { name: Default }
+
+pool: ${{ parameters.pool }}
 
 variables:
   azureServiceConnection: sc-azure-datahealth
