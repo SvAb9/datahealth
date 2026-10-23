@@ -1,0 +1,177 @@
+# =====================================================================
+# Data-Health · Pipeline de CI/CD en Azure Pipelines
+#
+#   Etapa CI  (en cada Pull Request y en cada push a main)
+#     - Backend : pruebas unitarias (Maven, sin Oracle)
+#     - Frontend: compilación de producción (Angular)
+#   Etapa CD  (solo en push a main, después de que CI pase)
+#     - API : construye la imagen Docker, la sube a ACR y actualiza la Container App
+#     - SPA : publica el frontend en Azure Static Web Apps
+#     - Prueba de humo: GET /actuator/health debe responder 200
+#
+# Necesita en Azure DevOps:
+#   - Service connection "sc-azure-datahealth" (Azure Resource Manager)
+#   - Variable secreta SWA_TOKEN (token de despliegue de Static Web Apps)
+# =====================================================================
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+parameters:
+  - name: agente
+    displayName: Agente que ejecuta el pipeline
+    type: string
+    default: hospedado          # cambia a "propio" si usas un agente propio (pool Default)
+    values:
+      - hospedado
+      - propio
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - backend
+      - frontend
+      - azure-pipelines.yml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - backend
+      - frontend
+      - azure-pipelines.yml
+
+pool:
+  ${{ if eq(parameters.agente, 'propio') }}:
+    name: Default
+  ${{ else }}:
+    vmImage: ubuntu-latest
+
+variables:
+  azureServiceConnection: sc-azure-datahealth
+  resourceGroup: rg-datahealth-stg
+  containerApp: ca-datahealth-api
+  acrName: acrdatahealth8659
+  imageName: datahealth-api
+
+stages:
+  # ------------------------------------------------------------------ CI
+  - stage: CI
+    displayName: Integración continua
+    jobs:
+      - job: Backend
+        displayName: Backend · pruebas unitarias
+        steps:
+          - task: JavaToolInstaller@0
+            displayName: Java 21
+            inputs:
+              versionSpec: '21'
+              jdkArchitectureOption: x64
+              jdkSourceOption: PreInstalled
+
+          - script: mvn -B -ntp test -Dtest='!DatahealthApplicationTests' -Dsurefire.failIfNoSpecifiedTests=false
+            displayName: mvn test (sin Oracle)
+            workingDirectory: backend
+
+          - task: PublishTestResults@2
+            displayName: Publicar resultados de las pruebas
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: JUnit
+              testResultsFiles: backend/target/surefire-reports/TEST-*.xml
+              testRunTitle: Backend
+
+      - job: Frontend
+        displayName: Frontend · compilación de producción
+        steps:
+          - task: NodeTool@0
+            displayName: Node 22
+            inputs:
+              versionSpec: 22.x
+
+          - script: npm ci
+            displayName: npm ci
+            workingDirectory: frontend
+
+          - script: npm run build
+            displayName: ng build (producción)
+            workingDirectory: frontend
+
+  # ------------------------------------------------------------------ CD
+  - stage: CD
+    displayName: Despliegue a staging
+    dependsOn: CI
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: API
+        displayName: API · Azure Container Apps
+        environment: staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Construir imagen, subirla a ACR y actualizar la Container App
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Build.SourcesDirectory)
+                    inlineScript: |
+                      set -e
+                      az extension add --name containerapp --upgrade --only-show-errors
+                      IMAGE=$(acrName).azurecr.io/$(imageName):$(Build.BuildId)
+                      az acr login --name $(acrName)
+                      docker build -t "$IMAGE" ./backend
+                      docker push "$IMAGE"
+                      az containerapp update --resource-group $(resourceGroup) --name $(containerApp) --image "$IMAGE"
+
+                - task: AzureCLI@2
+                  displayName: Prueba de humo (/actuator/health)
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      FQDN=$(az containerapp show --resource-group $(resourceGroup) --name $(containerApp) --query properties.configuration.ingress.fqdn -o tsv)
+                      i=0
+                      while [ $i -lt 24 ]; do
+                        CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://$FQDN/actuator/health" || true)
+                        echo "Intento $i: HTTP $CODE"
+                        if [ "$CODE" = "200" ]; then exit 0; fi
+                        i=$((i+1))
+                        sleep 10
+                      done
+                      echo "La API no respondió 200 a tiempo"
+                      exit 1
+
+      - deployment: SPA
+        displayName: SPA · Azure Static Web Apps
+        dependsOn: API
+        environment: staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: NodeTool@0
+                  displayName: Node 22
+                  inputs:
+                    versionSpec: 22.x
+
+                - script: |
+                    npm ci
+                    npm run build
+                  displayName: Compilar el frontend
+                  workingDirectory: frontend
+
+                - script: npx --yes @azure/static-web-apps-cli deploy ./dist/data-health-frontend/browser --deployment-token $(SWA_TOKEN) --env production
+                  displayName: Publicar en Static Web Apps
+                  workingDirectory: frontend
