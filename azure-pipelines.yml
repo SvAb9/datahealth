@@ -13,19 +13,9 @@
 #   - Service connection "sc-azure-datahealth" (Azure Resource Manager)
 #   - Variable secreta SWA_TOKEN (token de despliegue de Static Web Apps)
 #
-# Agente: por defecto usa el agente hospedado (ubuntu-latest).
-# Para usar un agente propio, al dar Run edita el parámetro "pool" y pon:
-#   name: Default
 # =====================================================================
 
 name: $(Date:yyyyMMdd)$(Rev:.r)
-
-parameters:
-  - name: pool
-    displayName: Pool del agente
-    type: object
-    default:
-      vmImage: ubuntu-latest
 
 trigger:
   branches:
@@ -47,7 +37,12 @@ pr:
       - frontend
       - azure-pipelines.yml
 
-pool: ${{ parameters.pool }}
+# Agente hospedado por Microsoft. Para usar un agente propio, reemplaza
+# las dos líneas de abajo por:
+#   pool:
+#     name: Default
+pool:
+  vmImage: ubuntu-latest
 
 variables:
   azureServiceConnection: sc-azure-datahealth
