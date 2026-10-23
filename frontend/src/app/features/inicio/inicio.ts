@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MODULOS } from '../../core/navigation/modulos';
 import { AuthService } from '../../core/services/auth.service';
-
+//Prueba pipeline comentario extra
 @Component({
   selector: 'app-inicio',
   imports: [RouterLink],
