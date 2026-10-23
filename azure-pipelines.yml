@@ -48,7 +48,7 @@ pr:
 pool:
   ${{ if eq(parameters.agente, 'propio') }}:
     name: Default
-  ${{ else }}:
+  ${{ if ne(parameters.agente, 'propio') }}:
     vmImage: ubuntu-latest
 
 variables:
