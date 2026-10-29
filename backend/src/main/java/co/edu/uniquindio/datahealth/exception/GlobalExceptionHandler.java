@@ -1,9 +1,9 @@
 package co.edu.uniquindio.datahealth.exception;
 
-import java.nio.file.AccessDeniedException;
+
 import java.time.LocalDateTime;
 
-import javax.naming.AuthenticationException;
+
 
 import org.hibernate.TypeMismatchException;
 import org.springframework.http.HttpStatus;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,6 +78,16 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiError> responder(HttpStatus estado, String mensaje, HttpServletRequest req) {
         ApiError cuerpo = new ApiError(LocalDateTime.now(), estado.value(), mensaje, req.getRequestURI());
         return ResponseEntity.status(estado).body(cuerpo);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> accesoDenegado(HttpServletRequest req) {
+        return responder(HttpStatus.FORBIDDEN, "No tienes permiso para realizar esta acción.", req);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> noAutenticado(HttpServletRequest req) {
+        return responder(HttpStatus.UNAUTHORIZED, "Tu sesión no es válida o ya venció. Inicia sesión de nuevo.", req);
     }
 
     @ExceptionHandler(Exception.class)
