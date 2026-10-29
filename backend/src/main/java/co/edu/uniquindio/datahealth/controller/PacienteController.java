@@ -14,16 +14,15 @@ import co.edu.uniquindio.datahealth.model.dto.PacienteResponse;
 import co.edu.uniquindio.datahealth.model.dto.RegistrarPacienteRequest;
 import co.edu.uniquindio.datahealth.service.PacienteService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/pacientes")
 public class PacienteController {
 
     private final PacienteService pacienteService;
 
-    public PacienteController(PacienteService pacienteService) {
-        this.pacienteService = pacienteService;
-    }
 
     /** 404 si el paciente no existe en la EPS del usuario. */
     @GetMapping

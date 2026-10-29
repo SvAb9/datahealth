@@ -1,16 +1,25 @@
 package co.edu.uniquindio.datahealth.exception;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 
+import javax.naming.AuthenticationException;
+
+import org.hibernate.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -68,4 +77,17 @@ public class GlobalExceptionHandler {
         ApiError cuerpo = new ApiError(LocalDateTime.now(), estado.value(), mensaje, req.getRequestURI());
         return ResponseEntity.status(estado).body(cuerpo);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> errorInesperado(Exception ex, HttpServletRequest req) throws Exception {
+        if (ex instanceof AccessDeniedException || ex instanceof AuthenticationException
+                || ex instanceof ServletException || ex instanceof TypeMismatchException
+                || ex instanceof ErrorResponse) {
+            throw ex; // los resuelve Spring Security / MVC con su propio código (401, 403, 400, 404, 405)
+        }
+        log.error("Error no controlado en {} {}", req.getMethod(), req.getRequestURI(), ex);
+        return responder(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocurrió un error inesperado. Intenta de nuevo más tarde.", req);
+    }
+
 }

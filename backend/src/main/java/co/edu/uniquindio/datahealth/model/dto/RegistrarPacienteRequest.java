@@ -1,5 +1,6 @@
 package co.edu.uniquindio.datahealth.model.dto;
 
+import co.edu.uniquindio.datahealth.util.ReglasDocumento;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -10,7 +11,7 @@ import jakarta.validation.constraints.Size;
 /** No lleva id_eps: el backend lo toma del JWT (ADR-03, RF-10). */
 public record RegistrarPacienteRequest(
         @NotBlank(message = "Escribe el documento de identidad.")
-        @Pattern(regexp = "^\\d{5,15}$", message = "El documento debe tener solo números, entre 5 y 15 dígitos.")
+        @Pattern(regexp = ReglasDocumento.REGEX, message = "El documento debe tener solo números, entre 5 y 15 dígitos.")
         String documento,
 
         @NotBlank(message = "Escribe el nombre completo.")

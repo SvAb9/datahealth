@@ -11,7 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="login">
       <section class="login__marca">
         <h1>Data-Health</h1>
-        <p class="lema">Toda la historia clínica del paciente, HOLA PRUEBA 2.</p>
+        <p class="lema">Toda la historia clínica del paciente, en un solo lugar.</p>
         <p>Cada entidad de salud ve únicamente la información de sus propios pacientes.</p>
       </section>
 

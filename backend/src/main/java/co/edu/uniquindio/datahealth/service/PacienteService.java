@@ -18,6 +18,7 @@ import co.edu.uniquindio.datahealth.repository.EpsRepository;
 import co.edu.uniquindio.datahealth.repository.PacienteRepository;
 import co.edu.uniquindio.datahealth.security.AuthContext;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
+import co.edu.uniquindio.datahealth.util.ReglasDocumento;
 import lombok.RequiredArgsConstructor;
 
 /** Proceso 1 · HU-04: identificar o registrar al paciente (RF-06 a RF-11, ADR-03, RN-01). */
@@ -25,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PacienteService {
 
-    private static final Pattern DOCUMENTO = Pattern.compile("^\\d{5,15}$");
+    private static final Pattern DOCUMENTO = Pattern.compile(ReglasDocumento.REGEX);
 
     private final PacienteRepository pacienteRepository;
     private final EpsRepository epsRepository;
@@ -82,4 +83,6 @@ public class PacienteService {
     private String nombreEps(Long idEps) {
         return epsRepository.findById(idEps).map(Eps::getNombre).orElse(null);
     }
+
+
 }
