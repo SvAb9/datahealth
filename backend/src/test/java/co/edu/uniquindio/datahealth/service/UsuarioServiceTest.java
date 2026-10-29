@@ -1,4 +1,4 @@
-package co.edu.uniquindio.datahealth;
+package co.edu.uniquindio.datahealth.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,8 +30,7 @@ import co.edu.uniquindio.datahealth.model.entity.Usuario;
 import co.edu.uniquindio.datahealth.model.enums.Rol;
 import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
-import co.edu.uniquindio.datahealth.service.AuditoriaService;
-import co.edu.uniquindio.datahealth.service.UsuarioService;
+
 
 /** Prueba unitaria de HU-03: no necesita Oracle (RNF-20). */
 @ExtendWith(MockitoExtension.class)

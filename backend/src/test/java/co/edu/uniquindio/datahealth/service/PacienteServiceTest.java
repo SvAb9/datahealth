@@ -48,7 +48,8 @@ class PacienteServiceTest {
 
     @BeforeEach
     void preparar() {
-        servicio = new PacienteService(pacienteRepository, epsRepository, auditoriaService, new PacienteMapper());
+        servicio = new PacienteService(pacienteRepository, epsRepository, auditoriaService, new PacienteMapper(),
+                new PacienteFactory());
         var usuario = new UsuarioAutenticado(3L, "recepcion@eps.com", "Marta", Rol.PERSONAL_ADMINISTRATIVO, EPS_USUARIO);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(usuario, null, List.of()));

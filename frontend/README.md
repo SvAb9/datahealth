@@ -11,7 +11,7 @@ npm start          # http://localhost:4200
 
 El backend debe estar en `http://localhost:8080` (se cambia en `src/environments/environment.development.ts`).
 El CORS del backend ya permite `http://localhost:4200` (`app.cors.allowed-origin`).
-La base de datos y el administrador de prueba (`admin@demo.com` / `Admin12345*`) se crean con los scripts de `backend/database/`.
+La base de datos y el administrador de prueba se crean con los scripts de `backend/database/`.
 
 ## Estructura (espejo del backend)
 

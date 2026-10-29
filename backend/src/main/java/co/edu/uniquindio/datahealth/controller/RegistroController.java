@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.uniquindio.datahealth.model.dto.EpsResponse;
 import co.edu.uniquindio.datahealth.model.dto.LoginResponse;
-import co.edu.uniquindio.datahealth.model.dto.RegistroPacienteRequest;
+import co.edu.uniquindio.datahealth.model.dto.AutorregistroPacienteRequest;
 import co.edu.uniquindio.datahealth.service.RegistroPacienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class RegistroController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<LoginResponse> registrar(@Valid @RequestBody RegistroPacienteRequest request) {
+    public ResponseEntity<LoginResponse> registrar(@Valid @RequestBody AutorregistroPacienteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(registroPacienteService.registrar(request));
     }
 }

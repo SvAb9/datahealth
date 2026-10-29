@@ -28,5 +28,3 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.registrar(request));
     }
 }
-
-/**prueba devops     */

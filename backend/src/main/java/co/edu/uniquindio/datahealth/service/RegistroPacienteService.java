@@ -13,7 +13,7 @@ import co.edu.uniquindio.datahealth.exception.EmailDuplicadoException;
 import co.edu.uniquindio.datahealth.exception.PacienteDuplicadoException;
 import co.edu.uniquindio.datahealth.model.dto.EpsResponse;
 import co.edu.uniquindio.datahealth.model.dto.LoginResponse;
-import co.edu.uniquindio.datahealth.model.dto.RegistroPacienteRequest;
+import co.edu.uniquindio.datahealth.model.dto.AutorregistroPacienteRequest;
 import co.edu.uniquindio.datahealth.model.entity.Eps;
 import co.edu.uniquindio.datahealth.model.entity.Paciente;
 import co.edu.uniquindio.datahealth.model.entity.Usuario;
@@ -38,6 +38,7 @@ public class RegistroPacienteService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuditoriaService auditoriaService;
+    private final PacienteFactory pacienteFactory;
 
     @Transactional(readOnly = true)
     public List<EpsResponse> listarEntidades() {
@@ -47,25 +48,43 @@ public class RegistroPacienteService {
     }
 
     @Transactional
-    public LoginResponse registrar(RegistroPacienteRequest request) {
-        Eps eps = epsRepository.findById(request.idEps())
+    public LoginResponse registrar(AutorregistroPacienteRequest request) {
+        Eps eps = buscarEpsActiva(request.idEps());
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        validarEmailLibre(email);
+        // Si el documento ya tiene expediente NO se vincula solo: así nadie puede reclamar
+        // la historia clínica de otra persona conociendo apenas su documento.
+        validarDocumentoLibre(eps.getIdEps(), request.documento().trim());
+
+        Usuario usuario = crearUsuario(request, eps.getIdEps(), email);
+        Paciente paciente = crearPaciente(request, eps.getIdEps(), usuario);
+
+        auditoriaService.registrar(eps.getIdEps(), email, "PACIENTE_AUTOREGISTRADO",
+                "Se registró desde el inicio de sesión (paciente " + paciente.getIdPaciente() + ")");
+        return new LoginResponse(jwtService.generarToken(usuario));
+    }
+
+    private Eps buscarEpsActiva(Long idEps) {
+        return epsRepository.findById(idEps)
                 .filter(e -> Boolean.TRUE.equals(e.getActiva()))
                 .orElseThrow(() -> new DatosInvalidosException("Elige una entidad de salud válida."));
+    }
 
-        String email = request.email().trim().toLowerCase(Locale.ROOT);
+    private void validarEmailLibre(String email) {
         if (usuarioRepository.findByEmailIgnoreCase(email).isPresent()) {
             throw new EmailDuplicadoException();
         }
+    }
 
-        // Si el documento ya tiene expediente NO se vincula solo: así nadie puede reclamar
-        // la historia clínica de otra persona conociendo apenas su documento.
-        String documento = request.documento().trim();
-        if (pacienteRepository.existsByIdEpsAndDocumento(eps.getIdEps(), documento)) {
+    private void validarDocumentoLibre(Long idEps, String documento) {
+        if (pacienteRepository.existsByIdEpsAndDocumento(idEps, documento)) {
             throw new PacienteDuplicadoException(MENSAJE_DOCUMENTO);
         }
+    }
 
+    private Usuario crearUsuario(AutorregistroPacienteRequest request, Long idEps, String email) {
         Usuario usuario = new Usuario();
-        usuario.setIdEps(eps.getIdEps());
+        usuario.setIdEps(idEps);
         usuario.setNombre(request.nombre().trim());
         usuario.setEmail(email);
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
@@ -73,29 +92,19 @@ public class RegistroPacienteService {
         usuario.setActivo(true);
         try {
             usuarioRepository.saveAndFlush(usuario);
+            return usuario;
         } catch (DataIntegrityViolationException e) {
             throw new EmailDuplicadoException();
         }
+    }
 
-        Paciente paciente = new Paciente();
-        paciente.setIdEps(eps.getIdEps());
-        paciente.setIdUsuario(usuario.getIdUsuario());
-        paciente.setDocumento(documento);
-        paciente.setNombre(request.nombre().trim());
-        paciente.setEdad(request.edad());
-        paciente.setTelefono(request.telefono().trim());
-        paciente.setDireccion(request.direccion() == null || request.direccion().isBlank()
-                ? null : request.direccion().trim());
-        paciente.setActivo(true);
-        paciente.setCreadoPor(usuario.getIdUsuario());
+    private Paciente crearPaciente(AutorregistroPacienteRequest request, Long idEps, Usuario usuario) {
+        Paciente paciente = pacienteFactory.desdeAutorregistro(request, idEps, usuario.getIdUsuario());
         try {
             pacienteRepository.saveAndFlush(paciente);
+            return paciente;
         } catch (DataIntegrityViolationException e) {
             throw new PacienteDuplicadoException(MENSAJE_DOCUMENTO);
         }
-
-        auditoriaService.registrar(eps.getIdEps(), email, "PACIENTE_AUTOREGISTRADO",
-                "Se registró desde el inicio de sesión (paciente " + paciente.getIdPaciente() + ")");
-        return new LoginResponse(jwtService.generarToken(usuario));
     }
 }

@@ -2,7 +2,7 @@
 -- Data-Health · 02 · Datos iniciales (una EPS de demostración y un administrador)
 -- Ejecutar conectado como DATAHEALTH, DESPUÉS del script 01.
 --
--- Credenciales de prueba:  admin@demo.com  /  Admin12345*
+
 -- El hash es BCrypt (ADR-04). Cámbialo en cualquier ambiente real.
 -- Si más adelante implementan un DataSeeder en Java, no dupliquen este usuario (email es único).
 -- =====================================================================
