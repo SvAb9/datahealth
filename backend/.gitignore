@@ -56,3 +56,4 @@ Wallet_*.zip
 *.zip
 tnsnames.ora
 sqlnet.ora
+!.env.example

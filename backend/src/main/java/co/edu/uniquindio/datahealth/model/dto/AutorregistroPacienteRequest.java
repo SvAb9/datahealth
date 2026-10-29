@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /** Autorregistro público: no trae rol (siempre PACIENTE). El paciente elige su EPS porque aún no tiene JWT. */
-public record RegistroPacienteRequest(
+public record AutorregistroPacienteRequest(
         @NotNull(message = "Elige tu entidad de salud.")
         Long idEps,
 

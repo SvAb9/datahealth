@@ -24,7 +24,7 @@ import co.edu.uniquindio.datahealth.exception.DatosInvalidosException;
 import co.edu.uniquindio.datahealth.exception.EmailDuplicadoException;
 import co.edu.uniquindio.datahealth.exception.PacienteDuplicadoException;
 import co.edu.uniquindio.datahealth.model.dto.LoginResponse;
-import co.edu.uniquindio.datahealth.model.dto.RegistroPacienteRequest;
+import co.edu.uniquindio.datahealth.model.dto.AutorregistroPacienteRequest;
 import co.edu.uniquindio.datahealth.model.entity.Eps;
 import co.edu.uniquindio.datahealth.model.entity.Paciente;
 import co.edu.uniquindio.datahealth.model.entity.Usuario;
@@ -50,7 +50,7 @@ class RegistroPacienteServiceTest {
     @BeforeEach
     void preparar() {
         servicio = new RegistroPacienteService(epsRepository, usuarioRepository, pacienteRepository,
-                passwordEncoder, jwtService, auditoriaService);
+                passwordEncoder, jwtService, auditoriaService, new PacienteFactory());
     }
 
     private Eps eps() {
@@ -60,8 +60,8 @@ class RegistroPacienteServiceTest {
         return e;
     }
 
-    private RegistroPacienteRequest solicitud() {
-        return new RegistroPacienteRequest(7L, "10203040", "  Ana Perez ", 70, " 3101234567 ", " ",
+    private AutorregistroPacienteRequest solicitud() {
+        return new AutorregistroPacienteRequest(7L, "10203040", "  Ana Perez ", 70, " 3101234567 ", " ",
                 " Ana@Correo.com ", "Clave12345");
     }
 

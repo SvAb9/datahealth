@@ -32,6 +32,7 @@ public class PacienteService {
     private final EpsRepository epsRepository;
     private final AuditoriaService auditoriaService;
     private final PacienteMapper pacienteMapper;
+    private final PacienteFactory pacienteFactory;
 
     /** Solo busca dentro de la EPS del usuario; un paciente de otra EPS se reporta como inexistente. */
     @Transactional(readOnly = true)
@@ -57,16 +58,7 @@ public class PacienteService {
             throw new PacienteDuplicadoException();
         }
 
-        Paciente paciente = new Paciente();
-        paciente.setIdEps(usuario.idEps());
-        paciente.setDocumento(doc);
-        paciente.setNombre(request.nombre().trim());
-        paciente.setEdad(request.edad());
-        paciente.setTelefono(request.telefono().trim());
-        paciente.setDireccion(request.direccion() == null || request.direccion().isBlank()
-                ? null : request.direccion().trim());
-        paciente.setActivo(true);
-        paciente.setCreadoPor(usuario.idUsuario());
+        Paciente paciente = pacienteFactory.desdeRegistro(request, usuario.idEps(), usuario.idUsuario());
 
         try {
             // flush para detectar aquí la restricción única si dos registros llegan a la vez.
@@ -83,6 +75,4 @@ public class PacienteService {
     private String nombreEps(Long idEps) {
         return epsRepository.findById(idEps).map(Eps::getNombre).orElse(null);
     }
-
-
 }

@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse, Sesion } from '../models/auth.models';
 import { Rol } from '../models/rol';
-import { Eps, RegistroPacienteRequest } from '../models/auth.models';
+import { Eps, AutorregistroPacienteRequest } from '../models/auth.models';
 
 const CLAVE_TOKEN = 'dh_token';
 
@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   /** Autorregistro de paciente: el backend devuelve el JWT y la sesión queda iniciada. */
-  registrarPaciente(datos: RegistroPacienteRequest): Observable<LoginResponse> {
+  registrarPaciente(datos: AutorregistroPacienteRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/registro`, datos)
       .pipe(tap((r) => this.guardarToken(r.token)));

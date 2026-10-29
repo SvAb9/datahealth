@@ -45,37 +45,53 @@ public class AuthService {
         String email = request.email().trim().toLowerCase(Locale.ROOT);
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
 
-        // Correo inexistente: mismo mensaje y mismo tiempo que una contraseña incorrecta.
         if (usuario == null) {
-            passwordEncoder.matches(request.password(), HASH_RELLENO);
-            auditoriaService.registrar(null, email, "LOGIN_FALLIDO", "Correo no registrado");
-            throw new CredencialesInvalidasException();
+            rechazarCorreoInexistente(request.password(), email);
         }
+        validarUsuarioActivo(usuario);
+        validarNoBloqueado(usuario);
+        reiniciarBloqueoVencido(usuario);
 
-        // Usuario dado de baja: se trata igual que credenciales inválidas.
+        if (!passwordEncoder.matches(request.password(), usuario.getPasswordHash())) {
+            registrarFallo(usuario);
+        }
+        return completarLogin(usuario);
+    }
+
+    /** Correo inexistente: mismo mensaje y mismo tiempo que una contraseña incorrecta. */
+    private void rechazarCorreoInexistente(String password, String email) {
+        passwordEncoder.matches(password, HASH_RELLENO);
+        auditoriaService.registrar(null, email, "LOGIN_FALLIDO", "Correo no registrado");
+        throw new CredencialesInvalidasException();
+    }
+
+    /** Usuario dado de baja: se trata igual que credenciales inválidas. */
+    private void validarUsuarioActivo(Usuario usuario) {
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
             auditoriaService.registrar(usuario.getIdEps(), usuario.getEmail(), "LOGIN_FALLIDO", "Usuario inactivo");
             throw new CredencialesInvalidasException();
         }
+    }
 
-        // Regla de negocio: un usuario bloqueado no entra aunque sus credenciales sean correctas.
+    /** Regla de negocio: un usuario bloqueado no entra aunque sus credenciales sean correctas. */
+    private void validarNoBloqueado(Usuario usuario) {
         if (usuario.estaBloqueado()) {
             auditoriaService.registrar(usuario.getIdEps(), usuario.getEmail(), "LOGIN_BLOQUEADO",
                     "Intento de ingreso con la cuenta bloqueada");
             throw new CuentaBloqueadaException(minutosRestantes(usuario));
         }
+    }
 
-        // El bloqueo ya venció: se empieza de nuevo con el contador en cero.
+    /** El bloqueo ya venció: se empieza de nuevo con el contador en cero. */
+    private void reiniciarBloqueoVencido(Usuario usuario) {
         if (usuario.getBloqueadoHasta() != null) {
             usuario.setBloqueadoHasta(null);
             usuario.setIntentosFallidos(0);
         }
+    }
 
-        if (!passwordEncoder.matches(request.password(), usuario.getPasswordHash())) {
-            registrarFallo(usuario);
-        }
-
-        // Éxito: se reinicia el contador (ADR-04).
+    /** Éxito: se reinicia el contador (ADR-04) y se emite el token. */
+    private LoginResponse completarLogin(Usuario usuario) {
         usuario.setIntentosFallidos(0);
         usuario.setBloqueadoHasta(null);
         usuarioRepository.save(usuario);

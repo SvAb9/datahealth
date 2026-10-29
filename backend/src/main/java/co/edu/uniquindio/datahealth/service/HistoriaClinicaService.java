@@ -50,7 +50,7 @@ public class HistoriaClinicaService {
         Paciente paciente = pacienteRepository.findByIdEpsAndIdUsuario(usuario.idEps(), usuario.idUsuario())
                 .orElseThrow(() -> new PacienteNoEncontradoException(
                         "No encontramos un expediente asociado a tu usuario."));
-        return construir(usuario, paciente);
+        return armarHistoria(usuario, paciente);
     }
 
     /** El personal médico consulta pacientes de su misma EPS; otra EPS se trata como inexistente (RN-01). */
@@ -59,10 +59,10 @@ public class HistoriaClinicaService {
         UsuarioAutenticado usuario = AuthContext.usuarioActual();
         Paciente paciente = pacienteRepository.findByIdEpsAndIdPaciente(usuario.idEps(), idPaciente)
                 .orElseThrow(PacienteNoEncontradoException::new);
-        return construir(usuario, paciente);
+        return armarHistoria(usuario, paciente);
     }
 
-    private List<AtencionResponse> construir(UsuarioAutenticado usuario, Paciente paciente) {
+    private List<AtencionResponse> armarHistoria(UsuarioAutenticado usuario, Paciente paciente) {
         Long idEps = usuario.idEps();
 
         List<Cita> citas = citaRepository.findByIdEpsAndIdPacienteOrderByFechaDesc(idEps, paciente.getIdPaciente());
@@ -73,22 +73,32 @@ public class HistoriaClinicaService {
         List<CorreccionCita> correcciones = idsCitas.isEmpty()
                 ? List.of() : correccionCitaRepository.findByIdEpsAndIdCitaInOrderByFechaHora(idEps, idsCitas);
 
-        // Nombres de médicos y de quienes corrigieron, en una sola consulta.
+        Map<Long, String> nombres = nombresDeUsuarios(idEps, citas, correcciones);
+
+        auditoriaService.registrar(idEps, usuario.email(), "HISTORIA_CONSULTADA",
+                "Paciente " + paciente.getIdPaciente());
+
+        return armarAtenciones(citas, ordenes, correcciones, nombres);
+    }
+
+    /** Nombres de médicos y de quienes corrigieron, en una sola consulta. */
+    private Map<Long, String> nombresDeUsuarios(Long idEps, List<Cita> citas, List<CorreccionCita> correcciones) {
         Set<Long> idsUsuarios = new HashSet<>();
         citas.forEach(c -> idsUsuarios.add(c.getIdMedico()));
         correcciones.forEach(c -> idsUsuarios.add(c.getIdUsuario()));
-        Map<Long, String> nombres = idsUsuarios.isEmpty()
-                ? Map.of()
-                : usuarioRepository.findByIdEpsAndIdUsuarioIn(idEps, idsUsuarios).stream()
-                        .collect(Collectors.toMap(Usuario::getIdUsuario, Usuario::getNombre));
+        if (idsUsuarios.isEmpty()) {
+            return Map.of();
+        }
+        return usuarioRepository.findByIdEpsAndIdUsuarioIn(idEps, idsUsuarios).stream()
+                .collect(Collectors.toMap(Usuario::getIdUsuario, Usuario::getNombre));
+    }
 
+    private List<AtencionResponse> armarAtenciones(List<Cita> citas, List<OrdenMedica> ordenes,
+            List<CorreccionCita> correcciones, Map<Long, String> nombres) {
         Map<Long, List<OrdenMedica>> ordenesPorCita =
                 ordenes.stream().collect(Collectors.groupingBy(OrdenMedica::getIdCita));
         Map<Long, List<CorreccionCita>> correccionesPorCita =
                 correcciones.stream().collect(Collectors.groupingBy(CorreccionCita::getIdCita));
-
-        auditoriaService.registrar(idEps, usuario.email(), "HISTORIA_CONSULTADA",
-                "Paciente " + paciente.getIdPaciente());
 
         return citas.stream().map(cita -> {
             List<OrdenResponse> ordenesCita = ordenesPorCita.getOrDefault(cita.getIdCita(), List.of()).stream()

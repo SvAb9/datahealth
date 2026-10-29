@@ -30,7 +30,7 @@ export interface Eps {
 }
 
 /** Autorregistro: solo crea pacientes; el backend fija el rol. */
-export interface RegistroPacienteRequest {
+export interface AutorregistroPacienteRequest {
   idEps: number;
   documento: string;
   nombre: string;
