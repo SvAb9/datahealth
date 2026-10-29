@@ -23,8 +23,10 @@ import co.edu.uniquindio.datahealth.repository.PacienteRepository;
 import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
 import co.edu.uniquindio.datahealth.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /** Autorregistro público: SOLO crea usuarios con rol PACIENTE (los demás roles los crea el administrador). */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RegistroPacienteService {
@@ -39,6 +41,7 @@ public class RegistroPacienteService {
     private final JwtService jwtService;
     private final AuditoriaService auditoriaService;
     private final PacienteFactory pacienteFactory;
+
 
     @Transactional(readOnly = true)
     public List<EpsResponse> listarEntidades() {
@@ -94,6 +97,7 @@ public class RegistroPacienteService {
             usuarioRepository.saveAndFlush(usuario);
             return usuario;
         } catch (DataIntegrityViolationException e) {
+            log.warn("Violación de integridad al autorregistrar el usuario: {}", e.getMostSpecificCause().getMessage());
             throw new EmailDuplicadoException();
         }
     }
@@ -104,6 +108,7 @@ public class RegistroPacienteService {
             pacienteRepository.saveAndFlush(paciente);
             return paciente;
         } catch (DataIntegrityViolationException e) {
+            log.warn("Violación de integridad al registrar el paciente: {}", e.getMostSpecificCause().getMessage());
             throw new PacienteDuplicadoException(MENSAJE_DOCUMENTO);
         }
     }

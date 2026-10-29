@@ -83,7 +83,7 @@ public class UsuarioService {
             // flush para detectar aquí la violación de la restricción única si dos registros llegan a la vez.
             usuarioRepository.saveAndFlush(usuario);
         } catch (DataIntegrityViolationException e) {
-            log.warn("Correo duplicado detectado al guardar el usuario {}", email, e);
+            log.warn("Violación de integridad al registrar el usuario: {}", e.getMostSpecificCause().getMessage());
             throw new EmailDuplicadoException();
         }
     }

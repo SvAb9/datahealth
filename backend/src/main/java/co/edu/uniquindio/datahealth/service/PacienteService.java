@@ -20,8 +20,10 @@ import co.edu.uniquindio.datahealth.security.AuthContext;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
 import co.edu.uniquindio.datahealth.util.ReglasDocumento;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /** Proceso 1 · HU-04: identificar o registrar al paciente (RF-06 a RF-11, ADR-03, RN-01). */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PacienteService {
@@ -64,6 +66,7 @@ public class PacienteService {
             // flush para detectar aquí la restricción única si dos registros llegan a la vez.
             pacienteRepository.saveAndFlush(paciente);
         } catch (DataIntegrityViolationException e) {
+            log.warn("Violación de integridad al registrar el paciente: {}", e.getMostSpecificCause().getMessage());
             throw new PacienteDuplicadoException();
         }
 
