@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Atencion } from './historia-clinica.models';
+import { Atencion, RegistrarAtencionRequest } from './historia-clinica.models';
+
 
 @Injectable({ providedIn: 'root' })
 export class HistoriaClinicaService {
@@ -17,5 +18,9 @@ export class HistoriaClinicaService {
   /** Personal médico: historia de un paciente de su misma EPS. SUPUESTO de ruta. */
   consultarDePaciente(idPaciente: number): Observable<Atencion[]> {
     return this.http.get<Atencion[]>(`${environment.apiUrl}/pacientes/${idPaciente}/historia-clinica`);
+  }
+    /** HU-05: el médico registra una atención del paciente. El backend toma EPS y médico del JWT. */
+  registrarAtencion(idPaciente: number, req: RegistrarAtencionRequest): Observable<Atencion> {
+    return this.http.post<Atencion>(`${environment.apiUrl}/pacientes/${idPaciente}/citas`, req);
   }
 }
