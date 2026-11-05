@@ -27,7 +27,9 @@ const ETIQUETA_ORDEN = { MEDICA: 'Orden médica', MEDICAMENTO: 'Medicamento', LA
         </div>
       } @else {
         <p class="pagina__intro">Atenciones registradas, de la más reciente a la más antigua.</p>
-
+        @if (puedeRegistrar()) {
+          <a class="btn" [routerLink]="['/historia-clinica', idPaciente(), 'nueva-atencion']">Registrar atención</a>
+        }
         @if (cargando()) {
           <p role="status">Cargando historia clínica…</p>
         } @else if (error()) {
@@ -35,7 +37,7 @@ const ETIQUETA_ORDEN = { MEDICA: 'Orden médica', MEDICAMENTO: 'Medicamento', LA
         } @else if (atenciones().length === 0) {
           <div class="vacio">
             <h2>Aún no hay atenciones</h2>
-            <p>Cuando se cierre una atención aparecerá aquí.</p>
+            <p>Cuando se registre una atención aparecerá aquí.</p>
           </div>
         } @else {
           <ol class="tiempo">
@@ -93,6 +95,10 @@ export class LineaTiempo {
   protected readonly sinPacienteSeleccionado = computed(
     () => !this.idPaciente() && this.auth.tieneRol('PERSONAL_MEDICO'),
   );
+    /** Solo el médico, y solo viendo a un paciente concreto, puede registrar una atención. */
+  protected readonly puedeRegistrar = computed(
+    () => !!this.idPaciente() && this.auth.tieneRol('PERSONAL_MEDICO'),
+  );
 
   constructor() {
     effect(() => {
@@ -101,7 +107,9 @@ export class LineaTiempo {
         this.error.set(null);
         this.cargando.set(false);
         return;
+        
       }
+      
 
       const id = this.idPaciente();
       this.cargando.set(true);

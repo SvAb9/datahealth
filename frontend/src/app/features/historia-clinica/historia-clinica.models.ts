@@ -19,3 +19,7 @@ export interface Atencion {
   ordenes: Orden[];
   correcciones: CorreccionCita[];
 }
+export interface RegistrarAtencionRequest {
+  diagnostico: string;
+  observaciones?: string;
+}
