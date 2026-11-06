@@ -27,6 +27,9 @@ import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
 import co.edu.uniquindio.datahealth.security.AuthContext;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
 import lombok.RequiredArgsConstructor;
+import co.edu.uniquindio.datahealth.repository.ResultadoExamenRepository;
+import co.edu.uniquindio.datahealth.model.entity.ResultadoExamen;
+import co.edu.uniquindio.datahealth.model.dto.ResultadoResponse;
 
 /** HU-06 · Consultar historia clínica como línea de tiempo (RF-17, RF-19, ADR-05). */
 @Service
@@ -42,7 +45,7 @@ public class HistoriaClinicaService {
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaService auditoriaService;
     private final CitaMapper citaMapper;
-
+    private final ResultadoExamenRepository resultadoRepository;
     /** El paciente ve solo su propio expediente, resuelto desde su usuario en el JWT. */
     @Transactional
     public List<AtencionResponse> consultarPropia() {
@@ -72,13 +75,15 @@ public class HistoriaClinicaService {
                 ? List.of() : ordenRepository.findByIdEpsAndIdCitaInOrderByIdOrden(idEps, idsCitas);
         List<CorreccionCita> correcciones = idsCitas.isEmpty()
                 ? List.of() : correccionCitaRepository.findByIdEpsAndIdCitaInOrderByFechaHora(idEps, idsCitas);
-
+        List<ResultadoExamen> resultados = idsCitas.isEmpty()
+                ? List.of() : resultadoRepository.findByIdEpsAndIdCitaInOrderByFechaResultado(idEps, idsCitas);
+        
         Map<Long, String> nombres = nombresDeUsuarios(idEps, citas, correcciones);
 
         auditoriaService.registrar(idEps, usuario.email(), "HISTORIA_CONSULTADA",
                 "Paciente " + paciente.getIdPaciente());
 
-        return armarAtenciones(citas, ordenes, correcciones, nombres);
+         return armarAtenciones(citas, ordenes, correcciones, resultados, nombres);
     }
 
     /** Nombres de médicos y de quienes corrigieron, en una sola consulta. */
@@ -94,11 +99,13 @@ public class HistoriaClinicaService {
     }
 
     private List<AtencionResponse> armarAtenciones(List<Cita> citas, List<OrdenMedica> ordenes,
-            List<CorreccionCita> correcciones, Map<Long, String> nombres) {
+            List<CorreccionCita> correcciones, List<ResultadoExamen> resultados, Map<Long, String> nombres) {
         Map<Long, List<OrdenMedica>> ordenesPorCita =
                 ordenes.stream().collect(Collectors.groupingBy(OrdenMedica::getIdCita));
         Map<Long, List<CorreccionCita>> correccionesPorCita =
                 correcciones.stream().collect(Collectors.groupingBy(CorreccionCita::getIdCita));
+        Map<Long, List<ResultadoExamen>> resultadosPorCita =
+                resultados.stream().collect(Collectors.groupingBy(ResultadoExamen::getIdCita));
 
         return citas.stream().map(cita -> {
             List<OrdenResponse> ordenesCita = ordenesPorCita.getOrDefault(cita.getIdCita(), List.of()).stream()
@@ -107,8 +114,11 @@ public class HistoriaClinicaService {
                     correccionesPorCita.getOrDefault(cita.getIdCita(), List.of()).stream()
                             .map(c -> citaMapper.toCorreccion(c, nombres.getOrDefault(c.getIdUsuario(), SIN_NOMBRE)))
                             .toList();
+            List<ResultadoResponse> resultadosCita =
+                    resultadosPorCita.getOrDefault(cita.getIdCita(), List.of()).stream()
+                            .map(citaMapper::toResultado).toList();
             return citaMapper.toAtencion(cita, nombres.getOrDefault(cita.getIdMedico(), SIN_NOMBRE),
-                    ordenesCita, correccionesCita);
+                    ordenesCita, correccionesCita, resultadosCita);
         }).toList();
     }
 }
