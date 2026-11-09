@@ -11,4 +11,7 @@ public interface ResultadoExamenRepository extends JpaRepository<ResultadoExamen
 
     List<ResultadoExamen> findByIdEpsAndIdCita(Long idEps, Long idCita);
     List<ResultadoExamen> findByIdEpsAndIdCitaInOrderByFechaResultado(Long idEps, Collection<Long> idsCitas);
+
+// ResultadoExamenRepository
+    boolean existsByIdEpsAndIdOrden(Long idEps, Long idOrden);
 }

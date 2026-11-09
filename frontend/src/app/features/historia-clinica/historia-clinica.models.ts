@@ -32,3 +32,9 @@ export interface Resultado {
   fechaResultado: string; // ISO
 }
 
+export interface Orden {
+  idOrden: number;
+  tipo: 'MEDICA' | 'MEDICAMENTO' | 'LABORATORIO';
+  descripcion: string;
+}
+

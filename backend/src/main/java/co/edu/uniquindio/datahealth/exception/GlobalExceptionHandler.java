@@ -102,4 +102,14 @@ public class GlobalExceptionHandler {
                 "Ocurrió un error inesperado. Intenta de nuevo más tarde.", req);
     }
 
+        @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<ApiError> recursoNoEncontrado(RecursoNoEncontradoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(ConflictoException.class)
+    public ResponseEntity<ApiError> conflicto(ConflictoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.CONFLICT, ex.getMessage(), req);
+    }
+
 }
