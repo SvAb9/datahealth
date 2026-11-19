@@ -11,7 +11,7 @@
 -- Cambia la contraseña antes de ejecutar. En Autonomous debe tener de 12 a 30
 -- caracteres, con mayúscula, minúscula y número, sin comillas dobles ni el nombre del usuario.
 -- =====================================================================
-CREATE USER datahealth IDENTIFIED BY "<CONTRASENA_DEFINIDA_POR_TI>"
+CREATE USER datahealth IDENTIFIED BY DataHealth123;
   QUOTA UNLIMITED ON data;
 
 GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE VIEW TO datahealth;
