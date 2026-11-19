@@ -15,6 +15,8 @@ const ACCIONES: Record<string, string> = {
   PACIENTE_AUTOREGISTRADO: 'Paciente creó su propia cuenta',
   HISTORIA_CONSULTADA: 'Historia clínica consultada',
   CITA_REGISTRADA: 'Atención registrada',
+  ORDEN_REGISTRADA: 'Orden registrada',
+  RESULTADO_REGISTRADO: 'Resultado registrado',
 };
 
 const PAGINA_VACIA: PaginaAuditoria = { contenido: [], pagina: 0, tamano: 20, total: 0, totalPaginas: 0 };

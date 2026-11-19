@@ -28,11 +28,9 @@ public class CitaMapper {
                 correcciones,
                 resultados);
     }
-
     public OrdenResponse toOrden(OrdenMedica orden) {
-        return new OrdenResponse(orden.getTipo().name(), orden.getDescripcion());
+        return new OrdenResponse(orden.getIdOrden(), orden.getTipo().name(), orden.getDescripcion());
     }
-
     public CorreccionResponse toCorreccion(CorreccionCita correccion, String usuario) {
         return new CorreccionResponse(correccion.getMotivo(), usuario, correccion.getFechaHora());
     }
