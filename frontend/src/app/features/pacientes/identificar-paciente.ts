@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/http/api-error';
+import { AuthService } from '../../core/services/auth.service';
 import { Paciente } from './pacientes.models';
 import { PacientesService } from './pacientes.service';
 
@@ -45,7 +46,9 @@ type Estado = 'inicio' | 'buscando' | 'encontrado' | 'nuevo';
             @if (p.direccion) { <div><dt>Dirección</dt><dd>{{ p.direccion }}</dd></div> }
             @if (p.eps) { <div><dt>Entidad de salud</dt><dd>{{ p.eps }}</dd></div> }
           </dl>
-          <a class="btn btn--secundario" [routerLink]="['/historia-clinica', p.idPaciente]">Ver historia clínica</a>
+          @if (puedeVerHistoria) {
+            <a class="btn btn--secundario" [routerLink]="['/historia-clinica', p.idPaciente]">Ver historia clínica</a>
+          }
         </section>
       }
 
@@ -92,11 +95,18 @@ type Estado = 'inicio' | 'buscando' | 'encontrado' | 'nuevo';
 export class IdentificarPaciente {
   private readonly fb = inject(FormBuilder);
   private readonly servicio = inject(PacientesService);
+  private readonly auth = inject(AuthService);
 
   protected readonly estado = signal<Estado>('inicio');
   protected readonly paciente = signal<Paciente | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly guardando = signal(false);
+
+  /** Solo el personal médico puede abrir la historia clínica (RF-04). */
+  protected readonly puedeVerHistoria = this.auth.tieneRol('PERSONAL_MEDICO');
+
+  /** Documento que realmente se buscó; es el mismo que se usa al registrar. */
+  private documentoBuscado = '';
 
   protected readonly busqueda = this.fb.nonNullable.group({
     documento: ['', [Validators.required, Validators.pattern(/^\d{5,15}$/)]],
@@ -109,6 +119,17 @@ export class IdentificarPaciente {
     direccion: [''],
   });
 
+  constructor() {
+    // Si el usuario cambia el documento, el resultado anterior ya no aplica.
+    this.busqueda.controls.documento.valueChanges.subscribe(() => {
+      if (this.estado() !== 'buscando') {
+        this.estado.set('inicio');
+        this.paciente.set(null);
+        this.error.set(null);
+      }
+    });
+  }
+
   protected inv(c: 'nombre' | 'edad' | 'telefono'): boolean {
     const ctl = this.registro.controls[c];
     return ctl.invalid && (ctl.touched || ctl.dirty);
@@ -116,10 +137,11 @@ export class IdentificarPaciente {
 
   protected buscar(): void {
     if (this.busqueda.invalid) { this.busqueda.markAllAsTouched(); return; }
+    this.documentoBuscado = this.busqueda.getRawValue().documento;
     this.estado.set('buscando');
     this.error.set(null);
     this.paciente.set(null);
-    this.servicio.buscarPorDocumento(this.busqueda.getRawValue().documento).subscribe({
+    this.servicio.buscarPorDocumento(this.documentoBuscado).subscribe({
       next: (p) => { this.paciente.set(p); this.estado.set('encontrado'); },
       error: (err: HttpErrorResponse) => {
         if (err.status === 404) { this.registro.reset(); this.estado.set('nuevo'); }
@@ -134,7 +156,7 @@ export class IdentificarPaciente {
     this.error.set(null);
     const v = this.registro.getRawValue();
     this.servicio.registrar({
-      documento: this.busqueda.getRawValue().documento,
+      documento: this.documentoBuscado,
       nombre: v.nombre,
       edad: v.edad as number,
       telefono: v.telefono,
