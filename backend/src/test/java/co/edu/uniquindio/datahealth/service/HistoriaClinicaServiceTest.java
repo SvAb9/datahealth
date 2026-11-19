@@ -33,11 +33,13 @@ import co.edu.uniquindio.datahealth.model.entity.Usuario;
 import co.edu.uniquindio.datahealth.model.enums.EstadoCita;
 import co.edu.uniquindio.datahealth.model.enums.Rol;
 import co.edu.uniquindio.datahealth.model.enums.TipoOrden;
+import co.edu.uniquindio.datahealth.model.entity.ResultadoExamen;
 import co.edu.uniquindio.datahealth.repository.CitaRepository;
 import co.edu.uniquindio.datahealth.repository.CorreccionCitaRepository;
 import co.edu.uniquindio.datahealth.repository.OrdenRepository;
 import co.edu.uniquindio.datahealth.repository.PacienteRepository;
 import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
+import co.edu.uniquindio.datahealth.repository.ResultadoExamenRepository;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
 
 /** Pruebas unitarias de HU-06: línea de tiempo y aislamiento por EPS. */
@@ -59,8 +61,8 @@ class HistoriaClinicaServiceTest {
     @BeforeEach
     void preparar() {
         servicio = new HistoriaClinicaService(pacienteRepository, citaRepository, ordenRepository,
-                correccionCitaRepository, usuarioRepository, auditoriaService, resultadoRepository,
-                new CitaMapper());
+        correccionCitaRepository, usuarioRepository, auditoriaService, new CitaMapper(),
+        resultadoRepository);
         var medico = new UsuarioAutenticado(2L, "ana@eps.com", "Dra. Ana", Rol.PERSONAL_MEDICO, EPS);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(medico, null, List.of()));
