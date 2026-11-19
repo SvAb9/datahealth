@@ -51,9 +51,12 @@ const ETIQUETA_ORDEN = { MEDICA: 'Orden médica', MEDICAMENTO: 'Medicamento', LA
                   Atendió: {{ a.medico }}
                 </p>
                 @if (a.diagnostico) { <p><strong>Diagnóstico:</strong> {{ a.diagnostico }}</p> }
-                @if (a.ordenes.length) {
+                                @if (a.resultados.length) {
+                  <h3>Resultados de exámenes</h3>
                   <ul class="ordenes">
-                    @for (o of a.ordenes; track $index) { <li><strong>{{ etiquetaOrden[o.tipo] }}:</strong> {{ o.descripcion }}</li> }
+                    @for (r of a.resultados; track $index) {
+                      <li><strong>{{ r.fechaResultado | date: 'dd/MM/y' }}:</strong> {{ r.resultado }}</li>
+                    }
                   </ul>
                 }
                 @for (c of a.correcciones; track $index) {

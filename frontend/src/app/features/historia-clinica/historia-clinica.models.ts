@@ -18,8 +18,17 @@ export interface Atencion {
   diagnostico?: string;
   ordenes: Orden[];
   correcciones: CorreccionCita[];
+  resultados: Resultado[];
 }
+
 export interface RegistrarAtencionRequest {
   diagnostico: string;
   observaciones?: string;
 }
+
+export interface Resultado {
+  idOrden: number;
+  resultado: string;
+  fechaResultado: string; // ISO
+}
+

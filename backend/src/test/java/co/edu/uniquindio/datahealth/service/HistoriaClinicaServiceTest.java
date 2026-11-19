@@ -33,11 +33,13 @@ import co.edu.uniquindio.datahealth.model.entity.Usuario;
 import co.edu.uniquindio.datahealth.model.enums.EstadoCita;
 import co.edu.uniquindio.datahealth.model.enums.Rol;
 import co.edu.uniquindio.datahealth.model.enums.TipoOrden;
+import co.edu.uniquindio.datahealth.model.entity.ResultadoExamen;
 import co.edu.uniquindio.datahealth.repository.CitaRepository;
 import co.edu.uniquindio.datahealth.repository.CorreccionCitaRepository;
 import co.edu.uniquindio.datahealth.repository.OrdenRepository;
 import co.edu.uniquindio.datahealth.repository.PacienteRepository;
 import co.edu.uniquindio.datahealth.repository.UsuarioRepository;
+import co.edu.uniquindio.datahealth.repository.ResultadoExamenRepository;
 import co.edu.uniquindio.datahealth.security.UsuarioAutenticado;
 
 /** Pruebas unitarias de HU-06: línea de tiempo y aislamiento por EPS. */
@@ -52,16 +54,19 @@ class HistoriaClinicaServiceTest {
     @Mock CorreccionCitaRepository correccionCitaRepository;
     @Mock UsuarioRepository usuarioRepository;
     @Mock AuditoriaService auditoriaService;
+    @Mock ResultadoExamenRepository resultadoRepository;
 
     HistoriaClinicaService servicio;
 
     @BeforeEach
     void preparar() {
         servicio = new HistoriaClinicaService(pacienteRepository, citaRepository, ordenRepository,
-                correccionCitaRepository, usuarioRepository, auditoriaService, new CitaMapper());
+        correccionCitaRepository, usuarioRepository, auditoriaService, new CitaMapper(),
+        resultadoRepository);
         var medico = new UsuarioAutenticado(2L, "ana@eps.com", "Dra. Ana", Rol.PERSONAL_MEDICO, EPS);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(medico, null, List.of()));
+            
     }
 
     @AfterEach
@@ -120,6 +125,14 @@ class HistoriaClinicaServiceTest {
         medico.setNombre("Dra. Ana");
         when(usuarioRepository.findByIdEpsAndIdUsuarioIn(eq(EPS), any())).thenReturn(List.of(medico));
 
+        ResultadoExamen re = new ResultadoExamen();
+        re.setIdCita(11L);
+        re.setIdOrden(1L);
+        re.setResultado("Creatinina 1.0 mg/dL");
+        re.setFechaResultado(LocalDateTime.of(2026, 9, 2, 8, 0));
+        when(resultadoRepository.findByIdEpsAndIdCitaInOrderByFechaResultado(EPS, List.of(11L)))
+                .thenReturn(List.of(re));
+
         List<AtencionResponse> r = servicio.consultarDePaciente(5L);
 
         assertEquals(1, r.size());
@@ -127,7 +140,9 @@ class HistoriaClinicaServiceTest {
         assertEquals("Dra. Ana", r.get(0).medico());
         assertEquals("MEDICAMENTO", r.get(0).ordenes().get(0).tipo());
         assertEquals("Dra. Ana", r.get(0).correcciones().get(0).usuario());
+        assertEquals("Creatinina 1.0 mg/dL", r.get(0).resultados().get(0).resultado());
         verify(auditoriaService).registrar(eq(EPS), eq("ana@eps.com"), eq("HISTORIA_CONSULTADA"), anyString());
+    
     }
 
     @Test
@@ -138,6 +153,6 @@ class HistoriaClinicaServiceTest {
         when(citaRepository.findByIdEpsAndIdPacienteOrderByFechaDesc(EPS, 6L)).thenReturn(List.of());
 
         assertEquals(0, servicio.consultarDePaciente(6L).size());
-        verifyNoInteractions(ordenRepository, correccionCitaRepository, usuarioRepository);
+        verifyNoInteractions(ordenRepository, correccionCitaRepository, usuarioRepository, resultadoRepository);
     }
 }

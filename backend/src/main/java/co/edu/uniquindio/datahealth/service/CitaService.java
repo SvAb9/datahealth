@@ -49,8 +49,7 @@ public class CitaService {
 
         auditoriaService.registrar(medico.idEps(), medico.email(), "CITA_REGISTRADA",
                 "Atención " + cita.getIdCita() + " del paciente " + idPaciente);
-
-        return citaMapper.toAtencion(cita, medico.nombre(), List.of(), List.of());
+        return citaMapper.toAtencion(cita, medico.nombre(), List.of(), List.of(), List.of());
     }
 
     private String vacioANulo(String texto) {
